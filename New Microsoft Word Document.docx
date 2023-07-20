@@ -1,0 +1,16 @@
+[
+    {
+    "product_name": "sumsung" ,
+    "description": "TLaptop", 
+    "video_url": "www.tosh", 
+    "category_id": 33, 
+    "price": 90
+},
+ {
+    "product_name": "Tosh" ,
+    "description": "Toaptop", 
+    "video_url": "wsh.com", 
+    "category_id": 99, 
+    "price": 77
+}
+]
