@@ -69,15 +69,6 @@ payload filter ((item, index) -> (item.tags== "Team_A") )]]></ee:set-payload>
 			</route>
 		
 </scatter-gather>
-<ee:transform doc:name="Transform Message" doc:id="7d968c84-5810-4e35-bec8-2001a2e512b6" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-
-payload ]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
 		<ee:transform doc:name="Transform Message" doc:id="97fe125a-5f1a-406a-8210-e48baba1b40c" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -85,14 +76,6 @@ output application/json
 ---
 payload."0".payload.phone
 ]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-		<ee:transform doc:name="Transform Message" doc:id="9078f321-049c-4456-b793-9a91bfc18c26" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<http:request method="GET" doc:name="Request numverify" doc:id="5062e803-be43-44ee-9068-606595885b7b" config-ref="HTTP_Request_configuration3" path="/validate">
