@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:shopify="http://www.mulesoft.org/schema/mule/shopify"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/shopify http://www.mulesoft.org/schema/mule/shopify/current/mule-shopify.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="4cba104f-b740-42b9-8d59-57aa21bbbc66" >
+		<http:listener-connection host="0.0.0.0" port="8089" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="e66d8e28-9b47-4f48-8376-df6e49386c8d" basePath="mule-l2-final-project.myshopify.com" >
+		<http:request-connection host="mule-l2-final-project.myshopify.com" port="443" protocol="HTTPS"/>
+	</http:request-config>
+	<shopify:config name="Shopify_Connector_Config" doc:name="Shopify Connector Config" doc:id="561df37f-afc0-4b8a-ad0a-45cc5677ac72" >
+		<shopify:basic-auth-connection username="fcdbdd9ae6ab70463ab5d219ef48265d" password="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" baseUri="https://mule-l2-final-project.myshopify.com/" />
+	</shopify:config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="b0224c7a-8b1c-47b0-a8c3-357bb243e86f" basePath="/numverify.com" >
+		<http:request-connection host="numverify.com" port="443" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration2" doc:name="HTTP Request configuration" doc:id="0ddbb281-8701-4841-b271-16e804c753d1" basePath="numverify.com" >
+		<http:request-connection host="numverify.com" />
+	</http:request-config>
+<http:request-config name="HTTP_Request_configuration3" doc:name="HTTP Request configuration" doc:id="0beacdde-7823-4e50-a3d7-b0c308c0de94" basePath="/api" >
+		<http:request-connection host="apilayer.net" />
+	</http:request-config>
+<http:request-config name="HTTP_Request_configuration4" doc:name="HTTP Request configuration" doc:id="42852e71-1ec8-473b-95bc-510e1bebec1b" basePath="/data/2.5" >
+		<http:request-connection host="api.openweathermap.org" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration5" doc:name="HTTP Request configuration" doc:id="05b2283d-9f8e-41c6-a047-6b9fbd6c5f1e" basePath="/ZipCodesAPI.svc/1.0" >
+		<http:request-connection protocol="HTTPS" host="api.zip-codes.com" port="443" />
+	</http:request-config>
+	<flow name="main" doc:id="98d33d93-aa0e-4058-8609-ed7d50dd1228">
+		<http:listener doc:name="Listener" doc:id="1647bea3-a5b5-407c-bf8e-efe56a140625" config-ref="HTTP_Listener_config" path="/kk" />
+		<shopify:customer-list doc:name="Customer List" doc:id="43e02f1f-adf7-4b74-810d-0b5a9ee7553f" config-ref="Shopify_Connector_Config" />
+<ee:transform doc:name="Transform Message" doc:id="04c3088d-1083-4eb9-ab47-273beb113fea">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="1683221a-9d2c-4f3a-9b71-6a873390147f" />
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;payload filter ((customer) -&gt; customer.first_name == "Hayat") &#10;    map (customer) -&gt; customer.addresses[0].zip]' doc:name="Set Variable" doc:id="bd378901-3120-46ce-9965-5fd586a85f22" variableName="zip"/>
+		<logger level="INFO" doc:name="Logger" doc:id="5846e0cc-78a8-4a27-b382-957c3131a8fa" message="Zip code for::: #[vars.zip]"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="440c9bfd-e972-4a6a-b014-9374d960196c">
+			<route>
+				<ee:transform doc:name="Transform Message" doc:id="d4248844-200e-4a7d-9e37-3f19facc412b">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload filter ((item, index) -> (item.tags != "Team_A") )]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+			<route >
+				<ee:transform doc:name="Transform Message" doc:id="dc75e9f0-e2e2-4bcb-a337-f27eafef2514">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload filter ((item, index) -> (item.tags== "Team_A") )]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+		
+</scatter-gather>
+<ee:transform doc:name="Transform Message" doc:id="7d968c84-5810-4e35-bec8-2001a2e512b6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+payload ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="97fe125a-5f1a-406a-8210-e48baba1b40c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload."0".payload.phone
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="9078f321-049c-4456-b793-9a91bfc18c26" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request numverify" doc:id="5062e803-be43-44ee-9068-606595885b7b" config-ref="HTTP_Request_configuration3" path="/validate">
+			<http:query-params><![CDATA[#[{
+	"access_key" : "7f75a4b698f1cfff2734c3ff6d390195",
+	"number" : payload[0]
+	}]]]></http:query-params>
+		</http:request>
+				<choice doc:name="Choice" doc:id="37c60963-c896-4596-94c1-b0cfa2424b9b">
+			<when expression="#[payload.valid == true]">
+				<flow-ref doc:name="Flow Reference" doc:id="617c1fde-692f-4c28-bd89-2d06ccc7b80f" name="L1PROJECT"/>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="ERRORDB" doc:id="67b2c566-7dea-465f-a085-ea5f14906b77">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"error DB"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	
+
+</flow>
+	<flow name="L1PROJECT" doc:id="b512e84e-c821-4666-abf5-f193c73f4f65" >
+		<http:listener doc:name="Listener" doc:id="391dc941-4d6e-4a93-9c80-92e4ab73b9d6" config-ref="HTTP_Listener_config" path="/l1/{zip}"/>
+		<http:request method="GET" doc:name="Request L1project" doc:id="ee3dbb12-8529-4897-9889-4c638abcea09" config-ref="HTTP_Request_configuration5" path="/GetZipCodeDetails/{zip}">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"zip" : vars.zip[0]
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"Key" : "7P02TLBONDKF7OWOUSP3"
+}]]]></http:query-params>
+		</http:request>
+		<http:request method="GET" doc:name="Request WEATHER" doc:id="486a89f5-6124-46f8-b01b-b15f2adeb0b2" config-ref="HTTP_Request_configuration4" path="/weather">
+			<http:query-params><![CDATA[#[output application/json
+---
+{
+	"appid"  :  "f2c5d4707693f74beb910ee086941bc7",
+"lat" :payload.item.Latitude,
+"lon" :payload.item.Longitude
+}]]]></http:query-params>
+		</http:request>
+<ee:transform doc:name="Transform Message" doc:id="f5e984be-2108-434f-898e-f203b6cd90f1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	
+    "lon": payload.coord.lon,
+    "lat": payload.coord.lat,
+    "temp_min": payload.main.temp_min,
+    "temp_max": payload.main.temp_max,
+    
+} 
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	
+
+</flow>
+</mule>
