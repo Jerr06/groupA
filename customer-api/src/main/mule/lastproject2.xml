@@ -10,7 +10,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
 	
 	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="e66d8e28-9b47-4f48-8376-df6e49386c8d" basePath="mule-l2-final-project.myshopify.com" >
-		<http:request-connection host="mule-l2-final-project.myshopify.com" port="443" protocol="HTTPS"/>
+		<http:request-connection host="mule-l2-final-project.myshopify.com" port="443"/>
 	</http:request-config>
 	<shopify:config name="Shopify_Connector_Config" doc:name="Shopify Connector Config" doc:id="561df37f-afc0-4b8a-ad0a-45cc5677ac72" >
 		<shopify:basic-auth-connection username="fcdbdd9ae6ab70463ab5d219ef48265d" password="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" baseUri="https://mule-l2-final-project.myshopify.com/" />
@@ -36,7 +36,7 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.customerLists filter ((customer) -&gt; customer.first_name == "Hayat"))[0].addresses.zip[0]]' doc:name="zip code" doc:id="bd378901-3120-46ce-9965-5fd586a85f22" variableName="zipCode"/>
 		<logger level="INFO" doc:name="Zip Code" doc:id="5846e0cc-78a8-4a27-b382-957c3131a8fa" message="Zip code for::: #[vars.zipCode]"/>
 		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.customerLists filter ((item, index) -&gt; (item.tags == "Team_A") ))[0]]' doc:name="Team A" doc:id="10ab8743-c754-413b-994d-9d79ed85fb8f" variableName="teamA"/>
-		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;vars.customerLists filter ((item, index) -&gt; (item.tags != "Team_A") )&#10;map (&#10;	)-&gt;{&#10;		&#10;    "tags": $.tags,&#10;    "TelephoneNumber": $.phone,&#10;    "customerID": $.customerid,&#10;    "id_hr": random(),&#10;    "zipCode": $.addresses[0].zip,&#10;   "fullName":$.adresses.name,&#10;&#10;    "email": $.email,&#10;    "muleTimestamp":now()&#10;&#10;	}]' doc:name="Other Team" doc:id="acfc2ef1-87c1-47cc-92ba-7c110ec9b6cb" variableName="otherTeams"/>
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;vars.customerLists filter ((item, index) -&gt; (item.tags != "Team_A") )&#10;map (&#10;	)-&gt;{&#10;		&#10;    "tags": $.tags,&#10;    "TelephoneNumber": $.phone,&#10;    "customerID": $.customerid,&#10;    "id_hr": random(),&#10;    "zipCode": $.addresses[0].zip,&#10;   "fullName":$.adresses.name,&#10;&#10;    "email": $.email,&#10;    "muleTimestamp":now() as String {format: "uuuu-MM-dd"},&#10;&#10;	}]' doc:name="Other Team" doc:id="acfc2ef1-87c1-47cc-92ba-7c110ec9b6cb" variableName="otherTeams"/>
 		<db:bulk-insert doc:name="errorDB" doc:id="5a9120e5-1010-4ef7-b11e-fa9ec13aa785" config-ref="Database_Configcloud">
 			<db:bulk-input-parameters ><![CDATA[#[vars.otherTeams]]]></db:bulk-input-parameters>
 			<db:sql ><![CDATA[insert into Craftsoft_B30_customer_team_A_Error(tags,TelephoneNumber,customerID,id_hr,zipCode,fullName,email,muleTimestamp)
@@ -72,7 +72,7 @@ output application/json
     "Longitude": vars.weatherData.coord.lon,
     "temp_min": vars.weatherData.main.temp_min,
     "temp_max": vars.weatherData.main.temp_max,
-    "muleTimestamp": now()
+    "muleTimestamp": now() as String {format: "uuuu-MM-dd"},
 
 }]]></ee:set-variable>
 					</ee:variables>
@@ -84,6 +84,14 @@ values (:tags,:TelephoneNumber,:customerID,:id_hr,:zipCode,:fullName,:email,:Lat
 ]]></db:sql>
 					<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
 				</db:insert>
+				<ee:transform doc:name="Transform Message" doc:id="023ce885-db4f-41df-bde3-5edd4d8e9da6">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"Data successfully inserted to DB"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 			</when>
 			<otherwise>
 				<ee:transform doc:name="ERRORDB" doc:id="67b2c566-7dea-465f-a085-ea5f14906b77">

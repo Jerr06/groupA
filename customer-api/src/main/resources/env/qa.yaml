@@ -1,6 +1,4 @@
-http:
-    host: "localhost"
-    port: "8089"
+
     
 db:
   host: "db.icraftsoft.net"

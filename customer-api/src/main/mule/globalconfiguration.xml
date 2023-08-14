@@ -1,27 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
-	
-	
-	
-	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c07dde53-0914-4dd3-8599-0cff1de3cc34" >
-		<http:listener-connection host="${http.host}" port="${http.port}" />
-	</http:listener-config>
-	<db:config name="Database_Configcloud" doc:name="Database Config" doc:id="d1b3c43b-9c23-4163-b03e-5a85460c78d9" >
-		<db:my-sql-connection host="${db.host}" port="3306" user="${db.user}" password="${db.password}" database="${db.database}" />
-	</db:config>
-	<db:config name="Database_Configlocal" doc:name="Database Config" doc:id="c983f910-68d6-4aa1-bfda-7c514b6e23bc" >
-		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="test" />
-	</db:config>
-	<configuration-properties doc:name="Configuration properties" doc:id="5c309f04-9140-40ea-afeb-5a7ea4d18360" file="env\qa.yaml" />
-	
-	
-	
-	
+    xmlns:http="http://www.mulesoft.org/schema/mule/http"
+    xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+    http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+    http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+    
+    <http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="1f3d6ac7-0898-4f29-9d0f-98ead33bdb47" >
+        <http:listener-connection host="0.0.0.0" port="8081"/>
+    </http:listener-config>
+    
+    <!-- New HTTP Request Configuration -->
+    <http:request-config name="HTTP_Request_Configuration" doc:name="HTTP Request Configuration" doc:id="81ce6715-fa7f-43b2-bfdc-1d42843ab54c" >
+        <http:request-connection host="customer-api.cloudhub.io" port="80" protocol="HTTPS" />
+    </http:request-config>
+    
+    <db:config name="Database_Configcloud" doc:name="Database Config" doc:id="6c83471f-0dec-483a-8ff1-7f999b6df2ab" >
+        <db:my-sql-connection host="${db.host}" port="3306" user="${db.user}" password="${db.password}" database="${db.database}" />
+    </db:config>
+    
+    <db:config name="Database_Configlocal" doc:name="Database Config" doc:id="f3724d10-2d54-4674-95d7-66b9cb6eb4b2" >
+        <db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="test" />
+    </db:config>
+    
+    <configuration-properties doc:name="Configuration properties" doc:id="583e6f20-185d-4a66-9e55-82bf09c6c4c8" file="env\qa.yaml" />
+    
+    <global-property doc:name="Global Property" doc:id="3d927484-df93-44b9-82c5-0689458f47bf" name="env" value="env\qa.yaml"/>
+    
+    <!-- Expose resources over HTTP endpoint -->
+    <flow name="mainFlow" doc:id="a5cda8be-fcc2-4278-9821-fb45ad9c9913">
+        <http:listener doc:name="Listener" doc:id="1954d475-03f7-4487-9419-b6236787556a" config-ref="HTTP_Listener_config" path="/api/*" />
+        <logger level="INFO" doc:name="Logger" doc:id="84866ac1-0b8f-44f9-b7a5-ec57113db4ac" message="Received a request from browser!" />
+        <!-- Add your processing logic here -->
+    </flow>
+    
 </mule>
