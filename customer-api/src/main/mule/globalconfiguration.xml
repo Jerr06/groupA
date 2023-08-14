@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	
+	
+	
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c07dde53-0914-4dd3-8599-0cff1de3cc34" >
+		<http:listener-connection host="${http.host}" port="${http.port}" />
+	</http:listener-config>
+	<db:config name="Database_Configcloud" doc:name="Database Config" doc:id="d1b3c43b-9c23-4163-b03e-5a85460c78d9" >
+		<db:my-sql-connection host="${db.host}" port="3306" user="${db.user}" password="${db.password}" database="${db.database}" />
+	</db:config>
+	<db:config name="Database_Configlocal" doc:name="Database Config" doc:id="c983f910-68d6-4aa1-bfda-7c514b6e23bc" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="test" />
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="5c309f04-9140-40ea-afeb-5a7ea4d18360" file="env\qa.yaml" />
+	
+	
+	
+	
+</mule>
