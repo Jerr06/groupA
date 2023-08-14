@@ -44,6 +44,10 @@ type auto_b512e84e_c821_4666_abf5_f193c73f4f65_Output_Attributes = {|
 
 ]]></types:shape>
     </types:type>
+    <types:type name="customer_list" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
   </types:catalog>
   <types:enrichment select="#b512e84e-c821-4666-abf5-f193c73f4f65">
     <types:processor-declaration>

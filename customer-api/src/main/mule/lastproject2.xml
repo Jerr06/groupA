@@ -8,9 +8,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/shopify http://www.mulesoft.org/schema/mule/shopify/current/mule-shopify.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
-	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="4cba104f-b740-42b9-8d59-57aa21bbbc66" >
-		<http:listener-connection host="0.0.0.0" port="8089" />
-	</http:listener-config>
+	
 	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="e66d8e28-9b47-4f48-8376-df6e49386c8d" basePath="mule-l2-final-project.myshopify.com" >
 		<http:request-connection host="mule-l2-final-project.myshopify.com" port="443" protocol="HTTPS"/>
 	</http:request-config>
@@ -34,59 +32,58 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 	</http:request-config>
 	<flow name="main" doc:id="98d33d93-aa0e-4058-8609-ed7d50dd1228">
 		<http:listener doc:name="Listener" doc:id="1647bea3-a5b5-407c-bf8e-efe56a140625" config-ref="HTTP_Listener_config" path="/kk" />
-		<shopify:customer-list doc:name="Customer List" doc:id="43e02f1f-adf7-4b74-810d-0b5a9ee7553f" config-ref="Shopify_Connector_Config" />
-<ee:transform doc:name="Transform Message" doc:id="04c3088d-1083-4eb9-ab47-273beb113fea">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-payload]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="1683221a-9d2c-4f3a-9b71-6a873390147f" />
-		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;payload filter ((customer) -&gt; customer.first_name == "Hayat") &#10;    map (customer) -&gt; customer.addresses[0].zip]' doc:name="Set Variable" doc:id="bd378901-3120-46ce-9965-5fd586a85f22" variableName="zip"/>
-		<logger level="INFO" doc:name="Logger" doc:id="5846e0cc-78a8-4a27-b382-957c3131a8fa" message="Zip code for::: #[vars.zip]"/>
-		<scatter-gather doc:name="Scatter-Gather" doc:id="440c9bfd-e972-4a6a-b014-9374d960196c">
-			<route>
-				<ee:transform doc:name="Transform Message" doc:id="d4248844-200e-4a7d-9e37-3f19facc412b">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/java
----
-payload filter ((item, index) -> (item.tags != "Team_A") )]]></ee:set-payload>
-					</ee:message>
-				</ee:transform>
-			</route>
-			<route >
-				<ee:transform doc:name="Transform Message" doc:id="dc75e9f0-e2e2-4bcb-a337-f27eafef2514">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-payload filter ((item, index) -> (item.tags== "Team_A") )]]></ee:set-payload>
-					</ee:message>
-				</ee:transform>
-			</route>
-		
-</scatter-gather>
-		<ee:transform doc:name="Transform Message" doc:id="97fe125a-5f1a-406a-8210-e48baba1b40c" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-payload."0".payload.phone
-]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
+		<shopify:customer-list doc:name="Customer List" doc:id="43e02f1f-adf7-4b74-810d-0b5a9ee7553f" config-ref="Shopify_Connector_Config" target="customerLists"/>
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.customerLists filter ((customer) -&gt; customer.first_name == "Hayat"))[0].addresses.zip[0]]' doc:name="zip code" doc:id="bd378901-3120-46ce-9965-5fd586a85f22" variableName="zipCode"/>
+		<logger level="INFO" doc:name="Zip Code" doc:id="5846e0cc-78a8-4a27-b382-957c3131a8fa" message="Zip code for::: #[vars.zipCode]"/>
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.customerLists filter ((item, index) -&gt; (item.tags == "Team_A") ))[0]]' doc:name="Team A" doc:id="10ab8743-c754-413b-994d-9d79ed85fb8f" variableName="teamA"/>
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;vars.customerLists filter ((item, index) -&gt; (item.tags != "Team_A") )&#10;map (&#10;	)-&gt;{&#10;		&#10;    "tags": $.tags,&#10;    "TelephoneNumber": $.phone,&#10;    "customerID": $.customerid,&#10;    "id_hr": random(),&#10;    "zipCode": $.addresses[0].zip,&#10;   "fullName":$.adresses.name,&#10;&#10;    "email": $.email,&#10;    "muleTimestamp":now()&#10;&#10;	}]' doc:name="Other Team" doc:id="acfc2ef1-87c1-47cc-92ba-7c110ec9b6cb" variableName="otherTeams"/>
+		<db:bulk-insert doc:name="errorDB" doc:id="5a9120e5-1010-4ef7-b11e-fa9ec13aa785" config-ref="Database_Configcloud">
+			<db:bulk-input-parameters ><![CDATA[#[vars.otherTeams]]]></db:bulk-input-parameters>
+			<db:sql ><![CDATA[insert into Craftsoft_B30_customer_team_A_Error(tags,TelephoneNumber,customerID,id_hr,zipCode,fullName,email,muleTimestamp)
+values (:tags,:TelephoneNumber,:customerID,:id_hr,:zipCode,:fullName,:email,:muleTimestamp);]]></db:sql>
+		</db:bulk-insert>
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;vars.teamA.phone]' doc:name="Phone Number" doc:id="ab9bc825-92ee-4a8c-9075-fba8aed98436" variableName="phoneNumber"/>
 		<http:request method="GET" doc:name="Request numverify" doc:id="5062e803-be43-44ee-9068-606595885b7b" config-ref="HTTP_Request_configuration3" path="/validate">
 			<http:query-params><![CDATA[#[{
 	"access_key" : "7f75a4b698f1cfff2734c3ff6d390195",
-	"number" : payload[0]
+	"number" : vars.phoneNumber
 	}]]]></http:query-params>
 		</http:request>
 				<choice doc:name="Choice" doc:id="37c60963-c896-4596-94c1-b0cfa2424b9b">
 			<when expression="#[payload.valid == true]">
 				<flow-ref doc:name="Flow Reference" doc:id="617c1fde-692f-4c28-bd89-2d06ccc7b80f" name="L1PROJECT"/>
+				<ee:transform doc:name="Team A" doc:id="dc75e9f0-e2e2-4bcb-a337-f27eafef2514">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="teamA"><![CDATA[%dw 2.0
+output application/json
+---
+//payload filter ((item, index) -> (item.tags== "Team_A") )
+{
+    "tags": vars.teamA.tags,
+    "TelephoneNumber": vars.teamA.phone,
+    "customerID": vars.teamA.id,
+    "id_hr": random(),
+    "zipCode": vars.teamA.addresses[0].zip,
+    "fullName": vars.teamA.addresses[0].first_name ++" "++ vars.teamA.addresses[0].last_name,
+    "email": vars.teamA.email,
+    "Latitude": vars.weatherData.coord.lon,
+    "Longitude": vars.weatherData.coord.lon,
+    "temp_min": vars.weatherData.main.temp_min,
+    "temp_max": vars.weatherData.main.temp_max,
+    "muleTimestamp": now()
+
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<set-payload value="#[vars.teamA]" doc:name="Set Payload" doc:id="de2623e1-9986-41a2-aa97-fcbb86f352a4" />
+				<db:insert doc:name="Insert" doc:id="d683bef1-4bad-454c-872a-2d2319426384" config-ref="Database_Configcloud">
+					<db:sql ><![CDATA[insert into Craftsoft_B30_customer_team_A(tags,TelephoneNumber,customerID,id_hr,zipCode,fullName,email,Latitude,Longitude,temp_min,temp_max,muleTimestamp)
+values (:tags,:TelephoneNumber,:customerID,:id_hr,:zipCode,:fullName,:email,:Latitude,:Longitude,:temp_min,:temp_max,:muleTimestamp);
+]]></db:sql>
+					<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+				</db:insert>
 			</when>
 			<otherwise>
 				<ee:transform doc:name="ERRORDB" doc:id="67b2c566-7dea-465f-a085-ea5f14906b77">
@@ -99,6 +96,7 @@ output application/json
 				</ee:transform>
 			</otherwise>
 		</choice>
+		<error-handler ref="error_handlerError_Handler" />
 	
 
 </flow>
@@ -108,7 +106,7 @@ output application/json
 			<http:uri-params ><![CDATA[#[output application/java
 ---
 {
-	"zip" : vars.zip[0]
+	"zip" : vars.zipCode
 }]]]></http:uri-params>
 			<http:query-params ><![CDATA[#[output application/java
 ---
@@ -116,7 +114,7 @@ output application/json
 	"Key" : "7P02TLBONDKF7OWOUSP3"
 }]]]></http:query-params>
 		</http:request>
-		<http:request method="GET" doc:name="Request WEATHER" doc:id="486a89f5-6124-46f8-b01b-b15f2adeb0b2" config-ref="HTTP_Request_configuration4" path="/weather">
+		<http:request method="GET" doc:name="Request WEATHER" doc:id="486a89f5-6124-46f8-b01b-b15f2adeb0b2" config-ref="HTTP_Request_configuration4" path="/weather" target="weatherData">
 			<http:query-params><![CDATA[#[output application/json
 ---
 {
@@ -125,22 +123,7 @@ output application/json
 "lon" :payload.item.Longitude
 }]]]></http:query-params>
 		</http:request>
-<ee:transform doc:name="Transform Message" doc:id="f5e984be-2108-434f-898e-f203b6cd90f1" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-	
-    "lon": payload.coord.lon,
-    "lat": payload.coord.lat,
-    "temp_min": payload.main.temp_min,
-    "temp_max": payload.main.temp_max,
-    
-} 
-]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
+		<error-handler ref="error_handlerError_Handler" />
 	
 
 </flow>
