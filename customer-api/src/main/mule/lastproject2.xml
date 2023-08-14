@@ -37,7 +37,7 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 		<logger level="INFO" doc:name="Zip Code" doc:id="5846e0cc-78a8-4a27-b382-957c3131a8fa" message="Zip code for::: #[vars.zipCode]"/>
 		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.customerLists filter ((item, index) -&gt; (item.tags == "Team_A") ))[0]]' doc:name="Team A" doc:id="10ab8743-c754-413b-994d-9d79ed85fb8f" variableName="teamA"/>
 		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;vars.customerLists filter ((item, index) -&gt; (item.tags != "Team_A") )&#10;map (&#10;	)-&gt;{&#10;		&#10;    "tags": $.tags,&#10;    "TelephoneNumber": $.phone,&#10;    "customerID": $.customerid,&#10;    "id_hr": random(),&#10;    "zipCode": $.addresses[0].zip,&#10;   "fullName":$.adresses.name,&#10;&#10;    "email": $.email,&#10;    "muleTimestamp":now()&#10;&#10;	}]' doc:name="Other Team" doc:id="acfc2ef1-87c1-47cc-92ba-7c110ec9b6cb" variableName="otherTeams"/>
-		<db:bulk-insert doc:name="Bulk insert" doc:id="5a9120e5-1010-4ef7-b11e-fa9ec13aa785" config-ref="Database_Configcloud">
+		<db:bulk-insert doc:name="errorDB" doc:id="5a9120e5-1010-4ef7-b11e-fa9ec13aa785" config-ref="Database_Configcloud">
 			<db:bulk-input-parameters ><![CDATA[#[vars.otherTeams]]]></db:bulk-input-parameters>
 			<db:sql ><![CDATA[insert into Craftsoft_B30_customer_team_A_Error(tags,TelephoneNumber,customerID,id_hr,zipCode,fullName,email,muleTimestamp)
 values (:tags,:TelephoneNumber,:customerID,:id_hr,:zipCode,:fullName,:email,:muleTimestamp);]]></db:sql>
